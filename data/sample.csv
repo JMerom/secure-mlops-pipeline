@@ -1,0 +1,11 @@
+name,email,age,monthly_spend,target_segment
+Alice Smith,alice@example.com,29,120.5,premium
+Bob Johnson,bob.johnson@example.org,41,80.2,standard
+Charlie Lee,charlie.lee@example.net,35,50.0,basic
+Diana King,diana.k@example.com,22,20.3,basic
+Ethan Wong,ethan.wong@example.org,31,200.1,premium
+Fiona Tan,fiona.tan@example.net,27,95.0,standard
+George Lim,george.lim@example.com,45,150.9,premium
+Hana Malik,hana.malik@example.org,38,60.7,standard
+Ivan Cruz,ivan.cruz@example.net,33,30.4,basic
+Julia Park,julia.park@example.com,26,110.2,premium
