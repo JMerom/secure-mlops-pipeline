@@ -1,0 +1,93 @@
+name: Secure MLOps Pipeline CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. Create reports directory
+      - name: Create reports directory
+        run: mkdir -p reports
+
+      # 5. PII Scan
+      - name: Scan dataset for PII
+        run: |
+          python security_scans/scan_pii.py data/sample.csv > reports/pii_scan.txt
+
+      # 6. Code Security Scan (Bandit)
+      - name: Run Bandit security scan
+        run: |
+          bash security_scans/scan_code_security.sh
+
+      # 7. Dependency Vulnerability Scan (pip-audit)
+      - name: Run dependency vulnerability scan
+        run: |
+          bash security_scans/scan_dependencies.sh
+
+      # 8. Train ML model
+      - name: Train ML model
+        run: |
+          python model/train.py
+
+      # 9. Validate Model and Dataset Hash
+      - name: Validate model artifact and dataset hash
+        run: |
+          python security_scans/validate_model.py > reports/model_validation.txt
+
+      # 10. Generate Compliance Report
+      - name: Generate unified compliance report
+        run: |
+          echo "# Compliance Report" > reports/compliance_report.md
+          echo "" >> reports/compliance_report.md
+          echo "Generated on: $(date -u)" >> reports/compliance_report.md
+          echo "" >> reports/compliance_report.md
+
+          echo "## PII Scan" >> reports/compliance_report.md
+          echo '```' >> reports/compliance_report.md
+          cat reports/pii_scan.txt >> reports/compliance_report.md
+          echo '```' >> reports/compliance_report.md
+
+          echo "" >> reports/compliance_report.md
+          echo "## Code Security (Bandit)" >> reports/compliance_report.md
+          echo '```' >> reports/compliance_report.md
+          cat reports/bandit_report.txt >> reports/compliance_report.md
+          echo '```' >> reports/compliance_report.md
+
+          echo "" >> reports/compliance_report.md
+          echo "## Dependency Scan (pip-audit)" >> reports/compliance_report.md
+          cat reports/dependency_report.md >> reports/compliance_report.md
+
+          echo "" >> reports/compliance_report.md
+          echo "## Model Validation" >> reports/compliance_report.md
+          echo '```' >> reports/compliance_report.md
+          cat reports/model_validation.txt >> reports/compliance_report.md
+          echo '```' >> reports/compliance_report.md
+
+      # 11. Upload artifacts
+      - name: Upload compliance reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: ComplianceReports
+          path: reports/
